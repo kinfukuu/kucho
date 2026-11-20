@@ -22,7 +22,7 @@ h2{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:19px;font-weig
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:transparent;font-size:12px;color:var(--ink)}.chip.active{background:var(--accent);color:white;border-color:var(--accent)}
 .hidden{display:none!important}.empty{text-align:center;padding:28px 10px;color:var(--muted);font-size:13px}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px}.notice{background:#f0e8db;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.6;color:#5d5144}
 dialog{border:1px solid var(--line);border-radius:17px;background:var(--paper);color:var(--ink);width:min(94%,560px);max-height:88vh;padding:0;box-shadow:0 15px 50px #0003}dialog::backdrop{background:#211d18a0}.modalhead{padding:16px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modalbody{padding:15px;overflow:auto;max-height:70vh}.modalfoot{padding:12px 15px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
-a{color:var(--accent)}.grouphead{font-size:12px;color:var(--accent);border-bottom:1px solid var(--line);padding:10px 0 5px;margin-top:5px}
+a{color:var(--accent)}.grouphead{font-size:12px;color:var(--accent);border-bottom:1px solid var(--line);padding:10px 0 5px;margin-top:5px}\n.photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.photo-item{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--soft)}.photo-item img{width:100%;height:100%;object-fit:cover;display:block}.photo-item button{position:absolute;right:5px;top:5px;border:0;border-radius:99px;background:#211d18c9;color:white;width:27px;height:27px;font-size:17px}.photo-add{border:1px dashed #b8ad9d;border-radius:10px;min-height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:12px;background:#faf7f0}.card-photo{display:flex;gap:6px;align-items:center;margin:7px 0}.card-photo img{width:58px;height:58px;object-fit:cover;border-radius:8px}.viewer-img{max-width:100%;max-height:75vh;object-fit:contain;display:block;margin:auto}
 @media(min-width:600px){main{padding-left:22px;padding-right:22px}.panel{padding:19px}}
 </style>
 </head>
@@ -58,13 +58,23 @@ a{color:var(--accent)}.grouphead{font-size:12px;color:var(--accent);border-botto
   <div class="row"><div class="field"><label>季語</label><input id="fKigo" placeholder="例：秋の雨"></div><div class="field"><label>季節</label><select id="fSeason"><option value="">未分類</option><option>春</option><option>夏</option><option>秋</option><option>冬</option><option>新年</option><option>無季・雑</option></select></div></div>
   <div class="row"><div class="field"><label>詠んだ日</label><input id="fDate" type="date"></div><div class="field"><label>お気に入り</label><select id="fFavorite"><option value="false">通常</option><option value="true">自選句・お気に入り</option></select></div></div>
   <div class="field"><label>メモ・詠んだ背景</label><textarea id="fMemo" placeholder="情景、心情、推敲の意図など"></textarea></div>
+  <div class="field"><label>添付写真（複数枚可）</label>
+   <div class="actions">
+    <button type="button" class="btn small" onclick="document.getElementById('photoPicker').click()">写真ライブラリから選ぶ</button>
+    <button type="button" class="btn small" onclick="document.getElementById('cameraPicker').click()">カメラで撮影</button>
+   </div>
+   <input id="photoPicker" class="hidden" type="file" accept="image/*" multiple onchange="addPhotos(event)">
+   <input id="cameraPicker" class="hidden" type="file" accept="image/*" capture="environment" onchange="addPhotos(event)">
+   <div id="photoPreview" class="photo-grid"></div>
+   <p class="muted">写真は自動的に縮小して端末内に保存します。バックアップにも含まれます。</p>
+  </div>
   <div id="historyArea"></div>
  </div>
  <div class="modalfoot"><button class="btn danger" id="deleteBtn" onclick="deleteCurrent()">削除</button><button class="btn primary" onclick="savePoem()">保存する</button></div>
 </dialog>
 <script>
 const DB_NAME='kucho-db', STORE='poems', SEASONS=['春','夏','秋','冬','新年','無季・雑'];
-let db, poems=[], currentSort='date', seasonFilter='', currentEdit=null;
+let db, poems=[], currentSort='date', seasonFilter='', currentEdit=null, workingImages=[];
 const $=id=>document.getElementById(id);
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:'id'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function allPoems(){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly'),r=tx.objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
@@ -79,7 +89,7 @@ function showView(v){['home','list','season','backup'].forEach(x=>$(x+'View').cl
 document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>showView(b.dataset.view));
 function renderHome(){ $('totalCount').textContent=poems.length;$('seasonCount').textContent=new Set(poems.map(p=>p.season).filter(Boolean)).size;$('yearCount').textContent=new Set(poems.map(p=>(p.date||'').slice(0,4)).filter(Boolean)).size;
  const recent=[...poems].sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')).slice(0,3);$('recentList').innerHTML=recent.length?recent.map(cardHTML).join(''):'<div class="empty">まだ作品がありません。<br>「句集」から最初の一句を登録しましょう。</div>'}
-function cardHTML(p){return `<article class="poemcard"><div class="poem">${esc(p.poem)}</div><div class="meta">${p.season?`<span>${esc(p.season)}</span>`:''}${p.kigo?`<span>季語：${esc(p.kigo)}</span>`:''}${p.date?`<span>${esc(p.date)}</span>`:''}${p.favorite?'<span>★ 自選句</span>':''}</div><div class="cardtools"><button class="btn small" onclick="openEditor('${p.id}')">詳細・推敲</button></div></article>`}
+function cardHTML(p){return `<article class="poemcard"><div class="poem">${esc(p.poem)}</div>${p.images&&p.images.length?`<div class="card-photo"><img src="${p.images[0].data}" alt="俳句の添付写真" onclick="viewPhoto('${p.id}',0)"><span class="muted">写真 ${p.images.length}枚</span></div>`:''}<div class="meta">${p.season?`<span>${esc(p.season)}</span>`:''}${p.kigo?`<span>季語：${esc(p.kigo)}</span>`:''}${p.date?`<span>${esc(p.date)}</span>`:''}${p.favorite?'<span>★ 自選句</span>':''}</div><div class="cardtools"><button class="btn small" onclick="openEditor('${p.id}')">詳細・推敲</button></div></article>`}
 document.querySelectorAll('#sortChips .chip').forEach(b=>b.onclick=()=>{currentSort=b.dataset.sort;document.querySelectorAll('#sortChips .chip').forEach(x=>x.classList.toggle('active',x===b));renderList()});
 function renderList(){if(!$('poemList'))return;let q=($('searchBox').value||'').trim().toLowerCase();let a=poems.filter(p=>!q||[p.poem,p.reading,p.kigo,p.memo,p.season].join(' ').toLowerCase().includes(q));if(seasonFilter)a=a.filter(p=>p.season===seasonFilter);
  if(currentSort==='kana')a.sort((x,y)=>hiragana(x.reading||x.poem).localeCompare(hiragana(y.reading||y.poem),'ja'));
@@ -90,10 +100,44 @@ function renderList(){if(!$('poemList'))return;let q=($('searchBox').value||'').
  $('poemList').innerHTML=a.length?a.map(cardHTML).join(''):'<div class="empty">該当する作品はありません。</div>'}
 function renderSeason(){ $('seasonChips').innerHTML=SEASONS.map(s=>`<button class="chip ${seasonFilter===s?'active':''}" onclick="seasonFilter='${s}';renderSeason()">${s}（${poems.filter(p=>p.season===s).length}）</button>`).join('')+`<button class="chip ${seasonFilter===''?'active':''}" onclick="seasonFilter='';renderSeason()">すべて</button>`;
  let a=seasonFilter?poems.filter(p=>p.season===seasonFilter):poems.filter(p=>p.season);a.sort((x,y)=>SEASONS.indexOf(x.season)-SEASONS.indexOf(y.season)||hiragana(x.reading||x.poem).localeCompare(hiragana(y.reading||y.poem),'ja'));$('seasonList').innerHTML=a.length?a.map(cardHTML).join(''):'<div class="empty">この分類の作品はまだありません。</div>'}
-function openEditor(id){currentEdit=poems.find(p=>p.id===id)||null; $('editorTitle').textContent=currentEdit?'作品の編集':'新しい句';$('editId').value=currentEdit?.id||'';$('fPoem').value=currentEdit?.poem||'';$('fReading').value=currentEdit?.reading||'';$('fKigo').value=currentEdit?.kigo||'';$('fSeason').value=currentEdit?.season||'';$('fDate').value=currentEdit?.date||new Date().toISOString().slice(0,10);$('fFavorite').value=String(!!currentEdit?.favorite);$('fMemo').value=currentEdit?.memo||'';$('deleteBtn').classList.toggle('hidden',!currentEdit);renderHistory();$('editor').showModal()}
+
+function renderPhotoPreview(){
+ const box=$('photoPreview'); if(!box)return;
+ box.innerHTML=workingImages.map((img,i)=>`<div class="photo-item"><img src="${img.data}" alt="添付写真 ${i+1}" onclick="viewWorkingPhoto(${i})"><button type="button" aria-label="写真を削除" onclick="removePhoto(${i})">×</button></div>`).join('');
+ box.innerHTML += `<button type="button" class="photo-add" onclick="document.getElementById('photoPicker').click()"><span style="font-size:24px">＋</span>写真を追加</button>`;
+}
+function viewWorkingPhoto(i){const img=workingImages[i];if(!img)return;$('viewerImage').src=img.data;$('imageViewer').showModal()}
+function viewPhoto(id,i){const p=poems.find(x=>x.id===id);const img=p?.images?.[i];if(!img)return;$('viewerImage').src=img.data;$('imageViewer').showModal()}
+function removePhoto(i){workingImages.splice(i,1);renderPhotoPreview()}
+function fileToDataURL(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();reader.onerror=()=>reject(reader.error);
+  reader.onload=()=>{
+   const source=new Image();source.onerror=()=>reject(new Error('画像を読み込めません'));
+   source.onload=()=>{
+    const max=1800,scale=Math.min(1,max/Math.max(source.width,source.height));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(source.width*scale));canvas.height=Math.max(1,Math.round(source.height*scale));
+    const ctx=canvas.getContext('2d');ctx.drawImage(source,0,0,canvas.width,canvas.height);
+    resolve({name:file.name||'photo.jpg',data:canvas.toDataURL('image/jpeg',0.78)});
+   };
+   source.src=reader.result;
+  };reader.readAsDataURL(file);
+ });
+}
+async function addPhotos(event){
+ const files=Array.from(event.target.files||[]);event.target.value='';
+ for(const file of files){
+  if(!file.type.startsWith('image/'))continue;
+  try{const photo=await fileToDataURL(file);workingImages.push(photo)}
+  catch(e){alert('画像を読み込めませんでした：'+(file.name||'写真'))}
+ }
+ renderPhotoPreview();
+}
+
+function openEditor(id){currentEdit=poems.find(p=>p.id===id)||null;workingImages=(currentEdit?.images||[]).map(x=>({...x})); $('editorTitle').textContent=currentEdit?'作品の編集':'新しい句';$('editId').value=currentEdit?.id||'';$('fPoem').value=currentEdit?.poem||'';$('fReading').value=currentEdit?.reading||'';$('fKigo').value=currentEdit?.kigo||'';$('fSeason').value=currentEdit?.season||'';$('fDate').value=currentEdit?.date||new Date().toISOString().slice(0,10);$('fFavorite').value=String(!!currentEdit?.favorite);$('fMemo').value=currentEdit?.memo||'';$('deleteBtn').classList.toggle('hidden',!currentEdit);renderHistory();renderPhotoPreview();$('editor').showModal()}
 function closeEditor(){$('editor').close()}
 function renderHistory(){let h=currentEdit?.history||[];$('historyArea').innerHTML=currentEdit?`<hr style="border:0;border-top:1px solid var(--line);margin:16px 0"><h2>推敲履歴（${h.length}件）</h2>${h.length?h.slice().reverse().map(v=>`<div class="poemcard"><div class="poem">${esc(v.poem)}</div><div class="meta">${esc(v.date||'日付不明')}・${esc(v.note||'変更記録')}</div></div>`).join(''):'<p class="muted">まだ推敲履歴はありません。保存時に変更前の句が記録されます。</p>'}`:''}
-async function savePoem(){let poem=$('fPoem').value.trim();if(!poem){alert('俳句を入力してください。');return}let old=currentEdit;let p={id:old?.id||uid(),poem,reading:$('fReading').value.trim(),kigo:$('fKigo').value.trim(),season:$('fSeason').value,date:$('fDate').value,favorite:$('fFavorite').value==='true',memo:$('fMemo').value.trim(),created:old?.created||new Date().toISOString(),updated:new Date().toISOString(),history:old?.history||[]};
+async function savePoem(){let poem=$('fPoem').value.trim();if(!poem){alert('俳句を入力してください。');return}let old=currentEdit;let p={id:old?.id||uid(),poem,reading:$('fReading').value.trim(),kigo:$('fKigo').value.trim(),season:$('fSeason').value,date:$('fDate').value,favorite:$('fFavorite').value==='true',memo:$('fMemo').value.trim(),images:workingImages,created:old?.created||new Date().toISOString(),updated:new Date().toISOString(),history:old?.history||[]};
  if(old&&old.poem!==poem){p.history=[...p.history,{poem:old.poem,date:new Date().toISOString().slice(0,10),note:'改作前の作品'}]}
  await put(p);closeEditor();await refresh();showView('list')}
 async function deleteCurrent(){if(!currentEdit||!confirm('この作品を削除しますか？'))return;await del(currentEdit.id);closeEditor();await refresh()}

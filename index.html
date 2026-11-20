@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f1e7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="句帳">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>句帳｜自分だけの俳句集</title>
+<style>
+:root{--paper:#f6f1e7;--ink:#292720;--muted:#777264;--line:#ded7c9;--accent:#765746;--card:#fffdf8;--soft:#eee7da}
+*{box-sizing:border-box} body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+header{padding:22px 18px 14px;max-width:760px;margin:auto} .eyebrow{font-size:10px;letter-spacing:.22em;color:var(--muted)} h1{font-family:"Yu Mincho", "Hiragino Mincho ProN",serif;font-size:30px;font-weight:500;margin:5px 0 2px;letter-spacing:.12em}.sub{font-size:11px;color:var(--muted);letter-spacing:.08em}
+main{max-width:760px;margin:auto;padding:0 14px 24px}.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;margin:10px 0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{background:var(--soft);border-radius:12px;padding:12px}.stat strong{display:block;font-family:Georgia,serif;font-size:24px;font-weight:400}.stat span{font-size:10px;color:var(--muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 13px;border-radius:10px;font-size:13px}.btn.primary{background:var(--accent);color:white;border-color:var(--accent)}.btn.danger{color:#9b3d32}.btn.small{padding:7px 10px;font-size:12px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fbf8f1ed;backdrop-filter:blur(12px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:7px 8px calc(7px + env(safe-area-inset-bottom));z-index:5}
+.navinner{display:flex;width:min(760px,100%);justify-content:space-around}.navbtn{border:0;background:none;color:var(--muted);font-size:11px;padding:7px 9px;min-width:62px}.navbtn b{display:block;font-size:19px;font-weight:400;margin-bottom:2px}.navbtn.active{color:var(--accent)}
+h2{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:19px;font-weight:500;margin:3px 0 12px}.muted{color:var(--muted);font-size:12px}.field{margin:10px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:#fffefa;color:var(--ink);font:inherit;font-size:14px}textarea{min-height:86px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}.poem{font-family:"Yu Mincho","Hiragino Mincho ProN",serif;font-size:19px;line-height:1.8;letter-spacing:.04em;margin:2px 0 8px;white-space:pre-wrap}.poemcard{padding:14px 2px;border-bottom:1px solid var(--line)}.poemcard:last-child{border-bottom:0}.meta{font-size:11px;color:var(--muted);display:flex;gap:9px;flex-wrap:wrap}.cardtools{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.chip{border:1px solid var(--line);border-radius:99px;padding:7px 11px;background:transparent;font-size:12px;color:var(--ink)}.chip.active{background:var(--accent);color:white;border-color:var(--accent)}
+.hidden{display:none!important}.empty{text-align:center;padding:28px 10px;color:var(--muted);font-size:13px}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px}.notice{background:#f0e8db;border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.6;color:#5d5144}
+dialog{border:1px solid var(--line);border-radius:17px;background:var(--paper);color:var(--ink);width:min(94%,560px);max-height:88vh;padding:0;box-shadow:0 15px 50px #0003}dialog::backdrop{background:#211d18a0}.modalhead{padding:16px 17px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.modalbody{padding:15px;overflow:auto;max-height:70vh}.modalfoot{padding:12px 15px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+a{color:var(--accent)}.grouphead{font-size:12px;color:var(--accent);border-bottom:1px solid var(--line);padding:10px 0 5px;margin-top:5px}
+@media(min-width:600px){main{padding-left:22px;padding-right:22px}.panel{padding:19px}}
+</style>
+</head>
+<body>
+<header><div class="eyebrow">MY PERSONAL HAIKU ARCHIVE</div><h1>句帳</h1><div class="sub">ことばを詠み、ことばを残す。</div></header>
+<main>
+<section id="homeView">
+ <div class="panel"><div class="stats"><div class="stat"><strong id="totalCount">0</strong><span>収録作品</span></div><div class="stat"><strong id="seasonCount">0</strong><span>季節の分類</span></div><div class="stat"><strong id="yearCount">0</strong><span>詠んだ年</span></div></div></div>
+ <div class="panel"><div class="sectionhead"><h2>最近の作品</h2><button class="btn small" onclick="showView('list')">すべて見る</button></div><div id="recentList"></div></div>
+ <div class="panel"><h2>句帳について</h2><div class="notice">作品はこのiPhoneのブラウザ内に保存されます。Safariの履歴・Webサイトデータを消去すると作品が失われる場合があります。定期的に「設定」からバックアップしてください。</div></div>
+</section>
+<section id="listView" class="hidden">
+ <div class="panel"><div class="sectionhead"><h2>作品一覧</h2><button class="btn primary" onclick="openEditor()">＋ 新しい句</button></div>
+ <input id="searchBox" placeholder="句・季語・読み・メモを検索" oninput="renderList()">
+ <div class="chips" id="sortChips"><button class="chip active" data-sort="date">新しい順</button><button class="chip" data-sort="kana">五十音順</button><button class="chip" data-sort="season">季節別</button><button class="chip" data-sort="year">年別</button></div>
+ <div id="filterArea"></div><div id="poemList"></div></div>
+</section>
+<section id="seasonView" class="hidden"><div class="panel"><h2>季節から探す</h2><div class="chips" id="seasonChips"></div><div id="seasonList"></div></div></section>
+<section id="backupView" class="hidden"><div class="panel"><h2>データのバックアップ</h2><p class="muted">全作品・分類・推敲履歴をJSONファイルに保存します。iCloud Driveや「ファイル」アプリなどに保管してください。</p><div class="actions"><button class="btn primary" onclick="exportBackup()">バックアップを書き出す</button><button class="btn" onclick="document.getElementById('restoreFile').click()">バックアップから復元</button><input id="restoreFile" class="hidden" type="file" accept=".json,application/json" onchange="importBackup(event)"></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0"><h2>データについて</h2><p class="muted">保存先：このブラウザのローカルデータベース（IndexedDB）<br>通信：作品データを外部サーバーへ送信しません<br>復元：バックアップJSONを読み込みます（現在のデータは置き換わります）</p><div class="notice">重要：ホーム画面からアプリを削除したり、SafariのWebサイトデータを消去したりする前に、必ずバックアップを作成してください。</div></div></section>
+</main>
+<nav><div class="navinner">
+<button class="navbtn active" data-view="home"><b>⌂</b>ホーム</button>
+<button class="navbtn" data-view="list"><b>冊</b>句集</button>
+<button class="navbtn" data-view="season"><b>四季</b>季節</button>
+<button class="navbtn" data-view="backup"><b>⇧</b>設定</button>
+</div></nav>
+<dialog id="editor">
+ <div class="modalhead"><strong id="editorTitle">新しい句</strong><button class="btn small" onclick="closeEditor()">閉じる</button></div>
+ <div class="modalbody">
+  <input type="hidden" id="editId">
+  <div class="field"><label>俳句 *</label><textarea id="fPoem" placeholder="詠んだ句を入力"></textarea></div>
+  <div class="field"><label>読み（五十音順の分類用）</label><input id="fReading" placeholder="例：あきぞらに"></div>
+  <div class="row"><div class="field"><label>季語</label><input id="fKigo" placeholder="例：秋の雨"></div><div class="field"><label>季節</label><select id="fSeason"><option value="">未分類</option><option>春</option><option>夏</option><option>秋</option><option>冬</option><option>新年</option><option>無季・雑</option></select></div></div>
+  <div class="row"><div class="field"><label>詠んだ日</label><input id="fDate" type="date"></div><div class="field"><label>お気に入り</label><select id="fFavorite"><option value="false">通常</option><option value="true">自選句・お気に入り</option></select></div></div>
+  <div class="field"><label>メモ・詠んだ背景</label><textarea id="fMemo" placeholder="情景、心情、推敲の意図など"></textarea></div>
+  <div id="historyArea"></div>
+ </div>
+ <div class="modalfoot"><button class="btn danger" id="deleteBtn" onclick="deleteCurrent()">削除</button><button class="btn primary" onclick="savePoem()">保存する</button></div>
+</dialog>
+<script>
+const DB_NAME='kucho-db', STORE='poems', SEASONS=['春','夏','秋','冬','新年','無季・雑'];
+let db, poems=[], currentSort='date', seasonFilter='', currentEdit=null;
+const $=id=>document.getElementById(id);
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>req.result.createObjectStore(STORE,{keyPath:'id'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function allPoems(){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readonly'),r=tx.objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function put(p){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).put(p);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function del(id){return new Promise((resolve,reject)=>{const tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error)})}
+function uid(){return 'p-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function hiragana(s){return s.replace(/[\u30a1-\u30f6]/g,c=>String.fromCharCode(c.charCodeAt(0)-0x60))}
+function firstKana(p){let s=hiragana(p.reading||p.poem||'').replace(/[^ぁ-ゖ]/g,'');return s[0]||'他'}
+function refresh(){return allPoems().then(a=>{poems=a;renderHome();renderList();renderSeason()})}
+function showView(v){['home','list','season','backup'].forEach(x=>$(x+'View').classList.toggle('hidden',x!==v));document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));if(v==='list')renderList();if(v==='season')renderSeason()}
+document.querySelectorAll('.navbtn').forEach(b=>b.onclick=()=>showView(b.dataset.view));
+function renderHome(){ $('totalCount').textContent=poems.length;$('seasonCount').textContent=new Set(poems.map(p=>p.season).filter(Boolean)).size;$('yearCount').textContent=new Set(poems.map(p=>(p.date||'').slice(0,4)).filter(Boolean)).size;
+ const recent=[...poems].sort((a,b)=>(b.updated||'').localeCompare(a.updated||'')).slice(0,3);$('recentList').innerHTML=recent.length?recent.map(cardHTML).join(''):'<div class="empty">まだ作品がありません。<br>「句集」から最初の一句を登録しましょう。</div>'}
+function cardHTML(p){return `<article class="poemcard"><div class="poem">${esc(p.poem)}</div><div class="meta">${p.season?`<span>${esc(p.season)}</span>`:''}${p.kigo?`<span>季語：${esc(p.kigo)}</span>`:''}${p.date?`<span>${esc(p.date)}</span>`:''}${p.favorite?'<span>★ 自選句</span>':''}</div><div class="cardtools"><button class="btn small" onclick="openEditor('${p.id}')">詳細・推敲</button></div></article>`}
+document.querySelectorAll('#sortChips .chip').forEach(b=>b.onclick=()=>{currentSort=b.dataset.sort;document.querySelectorAll('#sortChips .chip').forEach(x=>x.classList.toggle('active',x===b));renderList()});
+function renderList(){if(!$('poemList'))return;let q=($('searchBox').value||'').trim().toLowerCase();let a=poems.filter(p=>!q||[p.poem,p.reading,p.kigo,p.memo,p.season].join(' ').toLowerCase().includes(q));if(seasonFilter)a=a.filter(p=>p.season===seasonFilter);
+ if(currentSort==='kana')a.sort((x,y)=>hiragana(x.reading||x.poem).localeCompare(hiragana(y.reading||y.poem),'ja'));
+ else if(currentSort==='season')a.sort((x,y)=>SEASONS.indexOf(x.season)-SEASONS.indexOf(y.season)||hiragana(x.reading||x.poem).localeCompare(hiragana(y.reading||y.poem),'ja'));
+ else if(currentSort==='year')a.sort((x,y)=>(y.date||'').localeCompare(x.date||''));
+ else a.sort((x,y)=>(y.date||y.updated||'').localeCompare(x.date||x.updated||''));
+ $('filterArea').innerHTML=seasonFilter?`<div class="chips"><button class="chip active" onclick="seasonFilter='';renderList()">${esc(seasonFilter)} × 解除</button></div>`:'';
+ $('poemList').innerHTML=a.length?a.map(cardHTML).join(''):'<div class="empty">該当する作品はありません。</div>'}
+function renderSeason(){ $('seasonChips').innerHTML=SEASONS.map(s=>`<button class="chip ${seasonFilter===s?'active':''}" onclick="seasonFilter='${s}';renderSeason()">${s}（${poems.filter(p=>p.season===s).length}）</button>`).join('')+`<button class="chip ${seasonFilter===''?'active':''}" onclick="seasonFilter='';renderSeason()">すべて</button>`;
+ let a=seasonFilter?poems.filter(p=>p.season===seasonFilter):poems.filter(p=>p.season);a.sort((x,y)=>SEASONS.indexOf(x.season)-SEASONS.indexOf(y.season)||hiragana(x.reading||x.poem).localeCompare(hiragana(y.reading||y.poem),'ja'));$('seasonList').innerHTML=a.length?a.map(cardHTML).join(''):'<div class="empty">この分類の作品はまだありません。</div>'}
+function openEditor(id){currentEdit=poems.find(p=>p.id===id)||null; $('editorTitle').textContent=currentEdit?'作品の編集':'新しい句';$('editId').value=currentEdit?.id||'';$('fPoem').value=currentEdit?.poem||'';$('fReading').value=currentEdit?.reading||'';$('fKigo').value=currentEdit?.kigo||'';$('fSeason').value=currentEdit?.season||'';$('fDate').value=currentEdit?.date||new Date().toISOString().slice(0,10);$('fFavorite').value=String(!!currentEdit?.favorite);$('fMemo').value=currentEdit?.memo||'';$('deleteBtn').classList.toggle('hidden',!currentEdit);renderHistory();$('editor').showModal()}
+function closeEditor(){$('editor').close()}
+function renderHistory(){let h=currentEdit?.history||[];$('historyArea').innerHTML=currentEdit?`<hr style="border:0;border-top:1px solid var(--line);margin:16px 0"><h2>推敲履歴（${h.length}件）</h2>${h.length?h.slice().reverse().map(v=>`<div class="poemcard"><div class="poem">${esc(v.poem)}</div><div class="meta">${esc(v.date||'日付不明')}・${esc(v.note||'変更記録')}</div></div>`).join(''):'<p class="muted">まだ推敲履歴はありません。保存時に変更前の句が記録されます。</p>'}`:''}
+async function savePoem(){let poem=$('fPoem').value.trim();if(!poem){alert('俳句を入力してください。');return}let old=currentEdit;let p={id:old?.id||uid(),poem,reading:$('fReading').value.trim(),kigo:$('fKigo').value.trim(),season:$('fSeason').value,date:$('fDate').value,favorite:$('fFavorite').value==='true',memo:$('fMemo').value.trim(),created:old?.created||new Date().toISOString(),updated:new Date().toISOString(),history:old?.history||[]};
+ if(old&&old.poem!==poem){p.history=[...p.history,{poem:old.poem,date:new Date().toISOString().slice(0,10),note:'改作前の作品'}]}
+ await put(p);closeEditor();await refresh();showView('list')}
+async function deleteCurrent(){if(!currentEdit||!confirm('この作品を削除しますか？'))return;await del(currentEdit.id);closeEditor();await refresh()}
+async function exportBackup(){let payload={app:'句帳',formatVersion:1,exportedAt:new Date().toISOString(),poems};let blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});let url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='kucho-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(url)}
+async function importBackup(e){let file=e.target.files[0];if(!file)return;try{let data=JSON.parse(await file.text());if(!data||data.app!=='句帳'||!Array.isArray(data.poems))throw Error('形式が違います');if(!confirm(`バックアップの${data.poems.length}作品で現在のデータを置き換えます。よろしいですか？`))return;let tx=db.transaction(STORE,'readwrite');tx.objectStore(STORE).clear();for(let p of data.poems){if(!p.id||!p.poem)continue;tx.objectStore(STORE).put(p)}tx.oncomplete=async()=>{await refresh();alert('復元しました。');showView('home')};tx.onerror=()=>alert('復元に失敗しました')}catch(err){alert('バックアップを読み込めませんでした。ファイルを確認してください。')}finally{e.target.value=''}}
+async function init(){db=await openDB();await refresh();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});}
+init().catch(e=>{console.error(e);alert('データベースを開けませんでした。Safariで開き直してください。')});
+</script>
+</body></html>
